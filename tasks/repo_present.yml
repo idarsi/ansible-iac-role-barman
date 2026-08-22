@@ -1,0 +1,44 @@
+---
+- name: "Ensure PGDG RPM signing key is present"
+  ansible.builtin.rpm_key:
+    key: "{{ barman_repo_key_url }}"
+    state: present
+  vars:
+    ansible_python_interpreter: "{{ barman_package_module_interpreter }}"
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy }}"
+  register: barman_repo_key_result
+  retries: "{{ barman_repo_network_retries }}"
+  delay: "{{ barman_repo_network_delay }}"
+  until: barman_repo_key_result is succeeded
+
+- name: "Ensure PGDG repository package is present"
+  ansible.builtin.dnf:
+    name: "{{ barman_repo_package_url }}"
+    state: present
+    disable_gpg_check: "{{ barman_disable_gpg_check }}"
+    update_cache: "{{ barman_update_cache }}"
+  vars:
+    ansible_python_interpreter: "{{ barman_package_module_interpreter }}"
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy }}"
+  register: barman_repo_package_result
+  retries: "{{ barman_repo_network_retries }}"
+  delay: "{{ barman_repo_network_delay }}"
+  until: barman_repo_package_result is succeeded
+
+- name: "Ensure PGDG common repository is enabled"
+  ansible.builtin.command: "dnf config-manager --set-enabled {{ barman_repo_id }}"
+  register: barman_repo_enable_result
+  changed_when: false
+  failed_when: false
+
+- name: "Check PGDG common repository is enabled"
+  ansible.builtin.command: "dnf repolist --enabled {{ barman_repo_id }}"
+  register: barman_repo_check_result
+  changed_when: false
+  failed_when: barman_repo_check_result.rc != 0

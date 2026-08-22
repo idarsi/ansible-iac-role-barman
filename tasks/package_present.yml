@@ -1,0 +1,13 @@
+---
+- name: "Ensure Barman packages are present"
+  ansible.builtin.dnf:
+    name: "{{ barman_packages }}"
+    state: present
+    update_cache: "{{ barman_update_cache }}"
+    disable_gpg_check: "{{ barman_disable_gpg_check }}"
+  vars:
+    ansible_python_interpreter: "{{ barman_package_module_interpreter }}"
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+    no_proxy: "{{ no_proxy }}"

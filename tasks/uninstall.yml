@@ -1,0 +1,9 @@
+---
+- name: "Ensure Barman packages and configuration are absent"
+  ansible.builtin.include_tasks: absent.yml
+
+- name: "Remove Barman data and configuration through shared tasks"
+  ansible.builtin.include_tasks: filesystem_absent.yml
+  vars:
+    barman_absent_files:
+      - path: "{{ barman_config_path }}"

@@ -1,0 +1,3 @@
+---
+- name: "Write Barman task report through shared tasks"
+  ansible.builtin.include_tasks: shared/log_write.yml

@@ -1,0 +1,13 @@
+---
+- name: "Ensure Barman server configurations are present"
+  ansible.builtin.template:
+    src: server.conf.j2
+    dest: "{{ barman_server_config_dir }}/{{ barman_server.name }}.conf"
+    owner: "root"
+    group: "{{ barman_os_group }}"
+    mode: "{{ barman_config_mode }}"
+  loop: "{{ barman_servers }}"
+  loop_control:
+    loop_var: barman_server
+    label: "{{ barman_server.name }}"
+  notify: Validate Barman configuration

@@ -1,0 +1,32 @@
+---
+- name: "Set Barman package list"
+  ansible.builtin.set_fact:
+    barman_packages: >-
+      {{ [barman_package_name] +
+         ([barman_cli_package_name] if barman_install_cli else []) }}
+
+- name: "Ensure PGDG repository is present"
+  ansible.builtin.include_tasks: repo_present.yml
+
+- name: "Ensure Barman packages are present"
+  ansible.builtin.include_tasks: package_present.yml
+
+- name: "Ensure Barman directories are present through shared tasks"
+  ansible.builtin.include_tasks: filesystem_present.yml
+
+- name: "Ensure global Barman configuration is present"
+  ansible.builtin.template:
+    src: barman.conf.j2
+    dest: "{{ barman_config_path }}"
+    owner: "root"
+    group: "{{ barman_os_group }}"
+    mode: "{{ barman_config_mode }}"
+  notify: Validate Barman configuration
+
+- name: "Ensure configured Barman servers are present"
+  ansible.builtin.include_tasks: servers_present.yml
+
+- name: "Write Barman installation report"
+  ansible.builtin.include_tasks: log_write.yml
+  vars:
+    iac_log_write: "Ensured Barman packages and configuration are present"

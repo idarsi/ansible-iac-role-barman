@@ -1,0 +1,3 @@
+---
+- name: "Ensure Barman packages and configuration are present"
+  ansible.builtin.include_tasks: present.yml

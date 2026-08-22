@@ -1,0 +1,15 @@
+---
+all:
+  hosts:
+    barman01.example.org:
+      iac_blueprint:
+        barman:
+          global_config:
+            compression: "gzip"
+          servers:
+            - name: primary
+              description: "Primary PostgreSQL server"
+              conninfo: "host=db01.example.org user=barman dbname=postgres"
+              ssh_command: "ssh postgres@db01.example.org"
+              backup_method: "postgres"
+              retention_policy: "RECOVERY WINDOW OF 30 DAYS"

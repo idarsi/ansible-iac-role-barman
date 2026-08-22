@@ -1,0 +1,7 @@
+{% for key, value in barman_global_config.items() %}
+{{ key }} = {{ value }}
+{% endfor %}
+
+configuration_files_directory = {{ barman_server_config_dir }}
+log_file = {{ barman_log_directory }}/barman.log
+log_level = INFO

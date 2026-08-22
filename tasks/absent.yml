@@ -1,0 +1,28 @@
+---
+- name: "Remove Barman server configuration files"
+  ansible.builtin.file:
+    path: "{{ barman_server_config_dir }}/{{ barman_server.name }}.conf"
+    state: absent
+  loop: "{{ barman_servers }}"
+  loop_control:
+    loop_var: barman_server
+
+- name: "Remove Barman global configuration through shared tasks"
+  ansible.builtin.include_tasks: filesystem_absent.yml
+  vars:
+    barman_absent_files:
+      - path: "{{ barman_config_path }}"
+
+- name: "Remove Barman packages"
+  ansible.builtin.dnf:
+    name:
+      - "{{ barman_package_name }}"
+      - "{{ barman_cli_package_name }}"
+    state: absent
+  vars:
+    ansible_python_interpreter: "{{ barman_package_module_interpreter }}"
+
+- name: "Write Barman removal report"
+  ansible.builtin.include_tasks: log_write.yml
+  vars:
+    iac_log_write: "Removed Barman packages and managed configuration"

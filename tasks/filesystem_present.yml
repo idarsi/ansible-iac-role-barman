@@ -1,0 +1,33 @@
+---
+- name: "Set shared Barman directory records"
+  ansible.builtin.set_fact:
+    iac_fs_directories:
+      - path: "{{ barman_home }}"
+        owner: "{{ barman_os_user }}"
+        group: "{{ barman_os_group }}"
+        mode: "0750"
+      - path: "{{ barman_server_config_dir }}"
+        owner: "{{ barman_os_user }}"
+        group: "{{ barman_os_group }}"
+        mode: "0750"
+      - path: "{{ barman_log_directory }}"
+        owner: "{{ barman_os_user }}"
+        group: "{{ barman_os_group }}"
+        mode: "0750"
+      - path: "{{ barman_data_directory }}"
+        owner: "{{ barman_os_user }}"
+        group: "{{ barman_os_group }}"
+        mode: "0750"
+      - path: "{{ barman_run_directory }}"
+        owner: "{{ barman_os_user }}"
+        group: "{{ barman_os_group }}"
+        mode: "0750"
+    iac_fs_files: []
+
+- name: "Ensure Barman directories through shared filesystem tasks"
+  ansible.builtin.include_tasks: shared/fs_present.yml
+
+- name: "Clear shared filesystem variables"
+  ansible.builtin.set_fact:
+    iac_fs_directories: null
+    iac_fs_files: null

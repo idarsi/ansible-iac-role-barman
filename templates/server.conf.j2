@@ -1,0 +1,26 @@
+[{{ barman_server.name }}]
+description = {{ barman_server.description | default(barman_server.name) }}
+{% if barman_server.conninfo is defined %}
+conninfo = {{ barman_server.conninfo }}
+{% endif %}
+{% if barman_server.ssh_command is defined %}
+ssh_command = {{ barman_server.ssh_command }}
+{% endif %}
+{% if barman_server.backup_method is defined %}
+backup_method = {{ barman_server.backup_method }}
+{% endif %}
+{% if barman_server.streaming_conninfo is defined %}
+streaming_conninfo = {{ barman_server.streaming_conninfo }}
+{% endif %}
+{% if barman_server.slot_name is defined %}
+slot_name = {{ barman_server.slot_name }}
+{% endif %}
+{% if barman_server.retention_policy is defined %}
+retention_policy = {{ barman_server.retention_policy }}
+{% endif %}
+{% if barman_server.wal_retention_policy is defined %}
+wal_retention_policy = {{ barman_server.wal_retention_policy }}
+{% endif %}
+{% if barman_server.backup_directory is defined %}
+backup_directory = {{ barman_server.backup_directory }}
+{% endif %}

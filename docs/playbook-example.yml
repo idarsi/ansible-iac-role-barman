@@ -1,0 +1,7 @@
+---
+- name: "Install and configure Barman"
+  hosts: barman
+  become: true
+  roles:
+    - role: ansible-iac-role-barman
+      state: install

@@ -1,0 +1,9 @@
+---
+- name: "Ensure selected Barman server configurations are absent"
+  ansible.builtin.file:
+    path: "{{ barman_server_config_dir }}/{{ barman_server.name }}.conf"
+    state: absent
+  loop: "{{ barman_servers }}"
+  loop_control:
+    loop_var: barman_server
+    label: "{{ barman_server.name }}"

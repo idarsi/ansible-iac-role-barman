@@ -1,0 +1,14 @@
+---
+- name: "Validate Barman server definitions"
+  ansible.builtin.assert:
+    that:
+      - barman_server.name is defined
+      - barman_server.name is match('^[a-zA-Z0-9_.-]+$')
+      - barman_server.conninfo is defined or barman_server.ssh_command is defined
+    fail_msg: >-
+      Each Barman server must define a safe name and either conninfo or
+      ssh_command.
+  loop: "{{ iac_blueprint.barman.servers | default([]) }}"
+  loop_control:
+    loop_var: barman_server
+    label: "{{ barman_server.name | default('unnamed') }}"
