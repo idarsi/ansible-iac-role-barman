@@ -1,13 +1,37 @@
-# ansible-iac-role-barman
+ANSIBLE-IAC-ROLE-BARMAN
+=======================
+**COPYRIGHT** 2026 ^(ida|arsi)$ collective<br>
+**LICENSE** MIT License [LICENSE](LICENSE)<br>
+**AUTHORS**
+- Arsi Atomi <arsi@atomi.sh>
+
+Overview
+========
 
 This Ansible role installs and configures [Barman](https://www.pgbarman.org/)
 on Red Hat Enterprise Linux and Rocky Linux hosts. Barman packages are
-installed from the PostgreSQL Global Development Group (PGDG) repository.
+installed using the PostgreSQL Global Development Group (PGDG) repository.
 
 The role is deliberately separate from the PostgreSQL server role. It manages
 the Barman host and Barman server definitions; PostgreSQL connection users,
 `pg_hba.conf`, WAL archiving, and replication prerequisites remain PostgreSQL
 responsibilities.
+
+The role uses the `iac_blueprint` model to keep the desired Barman state in a
+structured inventory while Ansible manages the Barman host and its server
+definitions. It is intended to provide an independent backup-management layer
+that can be deployed after the PostgreSQL role has prepared the database-side
+connection and replication prerequisites.
+
+> **Maturity Level: Experimental**<br>
+> The initial package, repository, configuration, inventory-validation, and
+> shared-task wrapper functionality is implemented. The role is currently
+> moving from an initial integration prototype toward a production-ready
+> backup-management component. Molecule and CI coverage, end-to-end backup and
+> restore verification, scheduling and WAL-archiving workflows, and broader
+> operating-system coverage still need to be established. Use it for
+> development and controlled integration testing, and review its behavior
+> carefully before using it for unattended production backups.
 
 ## Supported states
 
