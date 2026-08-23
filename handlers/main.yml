@@ -3,3 +3,4 @@
   ansible.builtin.command: barman check all
   become: true
   changed_when: false
+  when: not ansible_check_mode

@@ -1,24 +1,11 @@
 ---
-###############################################################################
-#
-# main.yml
-#
-###############################################################################
+- name: "Validate Barman execution context"
+  ansible.builtin.include_tasks: validate_platform.yml
 
-- name: "Checking if operating system is supported"
-  ansible.builtin.fail:
-    msg: "Unsupported operating system: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_major_version'] }}"
-  when: >
-    iac_supported_os | selectattr('name', 'equalto', ansible_facts['distribution'])
-    | selectattr('versions', 'contains', ansible_facts['distribution_major_version'])
-    | list | length == 0
+- name: "Validate Barman inventory"
+  ansible.builtin.include_tasks: validate_inventory.yml
 
-- name: "Checking if iac_blueprint.barman is defined"
-  ansible.builtin.fail:
-    msg: "iac_blueprint.barman is not defined"
-  when: iac_blueprint is not defined or iac_blueprint.barman is not defined
-
-- name: "Setting Barman variables"
+- name: "Set Barman variables"
   ansible.builtin.set_fact:
     barman_package_module_interpreter: >-
       {{ barman_el8_dnf_interpreter
@@ -26,35 +13,33 @@
          else ansible_facts['python']['executable'] | default('/usr/bin/python3') }}
     barman_global_config: "{{ iac_blueprint.barman.global_config | default({}) }}"
     barman_servers: "{{ iac_blueprint.barman.servers | default([]) }}"
-
-- name: "Validating Barman inventory"
-  ansible.builtin.include_tasks: validate_inventory.yml
+    barman_state: "{{ state | default('present') }}"
 
 - name: "STATE: Ensure Barman is installed and configured"
   ansible.builtin.include_tasks: install.yml
-  when: state | default('present') == 'install'
+  when: barman_state == 'install'
 
 - name: "STATE: Ensure Barman is uninstalled"
   ansible.builtin.include_tasks: uninstall.yml
-  when: state | default('present') == 'uninstall'
+  when: barman_state == 'uninstall'
 
 - name: "STATE: Ensure Barman packages and configuration are present"
   ansible.builtin.include_tasks: present.yml
-  when: state | default('present') == 'present'
+  when: barman_state == 'present'
 
 - name: "STATE: Ensure Barman packages and configuration are absent"
   ansible.builtin.include_tasks: absent.yml
-  when: state | default('present') == 'absent'
+  when: barman_state == 'absent'
 
 - name: "STATE: Ensure configured Barman servers are present"
   ansible.builtin.include_tasks: servers_present.yml
-  when: state | default('present') == 'servers_present'
+  when: barman_state == 'servers_present'
 
 - name: "STATE: Ensure configured Barman servers are absent"
   ansible.builtin.include_tasks: servers_absent.yml
-  when: state | default('present') == 'servers_absent'
+  when: barman_state == 'servers_absent'
 
 - name: "STATE: Validate Barman inventory"
   ansible.builtin.debug:
     msg: "Barman inventory validation completed successfully"
-  when: state | default('present') == 'validate'
+  when: barman_state == 'validate'

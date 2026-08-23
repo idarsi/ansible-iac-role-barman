@@ -67,6 +67,12 @@ connection and replication prerequisites.
 See [docs/inventory-example.yml](docs/inventory-example.yml) for a complete
 inventory example.
 
+The `iac_blueprint.barman` mapping accepts optional `global_config` and a
+`servers` list. Each server requires a unique `name` and at least one of
+`conninfo` or `ssh_command`; the remaining server fields are rendered to the
+server configuration file when provided. Use `state: validate` to check this
+input contract without installing packages or changing files.
+
 ## Requirements
 
 - Ansible 2.15 or newer

@@ -1,0 +1,21 @@
+---
+- name: "Assert Barman inventory is available"
+  ansible.builtin.assert:
+    that:
+      - iac_blueprint is defined
+      - iac_blueprint is mapping
+      - iac_blueprint.barman is defined
+      - iac_blueprint.barman is mapping
+    fail_msg: >-
+      Define iac_blueprint.barman as a mapping before running the Barman role.
+
+- name: "Assert Barman host platform is supported"
+  ansible.builtin.assert:
+    that:
+      - >-
+        iac_supported_os | selectattr('name', 'equalto', ansible_facts['distribution'])
+        | selectattr('versions', 'contains', ansible_facts['distribution_major_version'])
+        | list | length > 0
+    fail_msg: >-
+      Unsupported operating system: {{ ansible_facts['distribution'] }}
+      {{ ansible_facts['distribution_major_version'] }}.
