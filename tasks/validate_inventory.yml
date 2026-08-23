@@ -1,14 +1,56 @@
 ---
+- name: "Validate Barman state"
+  ansible.builtin.assert:
+    that:
+      - state | default('present') in
+        ['install', 'uninstall', 'present', 'absent', 'servers_present',
+         'servers_absent', 'validate']
+    fail_msg: >-
+      Unsupported Barman state '{{ state | default('present') }}'. Supported
+      states are install, uninstall, present, absent, servers_present,
+      servers_absent, and validate.
+
+- name: "Validate Barman inventory structure"
+  ansible.builtin.assert:
+    that:
+      - iac_blueprint.barman.global_config | default({}) is mapping
+      - iac_blueprint.barman.servers | default([]) is sequence
+      - iac_blueprint.barman.servers | default([]) is not string
+    fail_msg: >-
+      iac_blueprint.barman.global_config must be a mapping and servers must
+      be a list.
+
 - name: "Validate Barman server definitions"
   ansible.builtin.assert:
     that:
+      - barman_server is mapping
       - barman_server.name is defined
+      - barman_server.name is string
+      - barman_server.name | length > 0
       - barman_server.name is match('^[a-zA-Z0-9_.-]+$')
-      - barman_server.conninfo is defined or barman_server.ssh_command is defined
+      - >-
+        barman_server.conninfo is defined or barman_server.ssh_command is
+        defined
+      - barman_server.conninfo is not defined or barman_server.conninfo is string
+      - barman_server.ssh_command is not defined or barman_server.ssh_command is string
+      - barman_server.conninfo is not defined or barman_server.conninfo | length > 0
+      - barman_server.ssh_command is not defined or barman_server.ssh_command | length > 0
     fail_msg: >-
-      Each Barman server must define a safe name and either conninfo or
-      ssh_command.
+      Each Barman server must be a mapping with a unique safe name and either
+      conninfo or ssh_command.
   loop: "{{ iac_blueprint.barman.servers | default([]) }}"
   loop_control:
     loop_var: barman_server
     label: "{{ barman_server.name | default('unnamed') }}"
+
+- name: "Collect Barman server names"
+  ansible.builtin.set_fact:
+    barman_server_names: >-
+      {{ iac_blueprint.barman.servers | default([]) |
+         map(attribute='name') | list }}
+
+- name: "Validate Barman server names are unique"
+  ansible.builtin.assert:
+    that:
+      - barman_server_names | unique | length == barman_server_names | length
+    fail_msg: "Barman server names must be unique."
