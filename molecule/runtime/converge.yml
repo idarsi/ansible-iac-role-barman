@@ -1,0 +1,21 @@
+---
+- name: Install and configure Barman
+  hosts: all
+  become: false
+  vars:
+    ansible_remote_tmp: /tmp/.ansible/tmp
+  tasks:
+    - name: Ensure PGDG packages and configuration are present
+      ansible.builtin.include_role:
+        name: ansible-iac-role-barman
+      vars:
+        state: present
+        iac_ansible_report: false
+        iac_blueprint:
+          barman:
+            global_config:
+              "barman_user": barman
+            servers:
+              - name: primary
+                conninfo: "host=db.example.test user=barman dbname=postgres"
+                ssh_command: "ssh postgres@db.example.test"

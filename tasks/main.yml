@@ -2,18 +2,19 @@
 - name: "Validate Barman execution context"
   ansible.builtin.include_tasks: validate_platform.yml
 
+- name: "Set requested Barman state"
+  ansible.builtin.set_fact:
+    barman_state: "{{ state | default('present') }}"
+
 - name: "Validate Barman inventory"
   ansible.builtin.include_tasks: validate_inventory.yml
 
 - name: "Set Barman variables"
   ansible.builtin.set_fact:
     barman_package_module_interpreter: >-
-      {{ barman_el8_dnf_interpreter
-         if ansible_facts['distribution_major_version'] == '8'
-         else ansible_facts['python']['executable'] | default('/usr/bin/python3') }}
+      {{ ansible_facts['python']['executable'] | default('/usr/bin/python3') }}
     barman_global_config: "{{ iac_blueprint.barman.global_config | default({}) }}"
     barman_servers: "{{ iac_blueprint.barman.servers | default([]) }}"
-    barman_state: "{{ state | default('present') }}"
 
 - name: "STATE: Ensure Barman is installed and configured"
   ansible.builtin.include_tasks: install.yml

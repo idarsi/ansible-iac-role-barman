@@ -2,11 +2,11 @@
 - name: "Validate Barman state"
   ansible.builtin.assert:
     that:
-      - state | default('present') in
+      - barman_state in
         ['install', 'uninstall', 'present', 'absent', 'servers_present',
          'servers_absent', 'validate']
     fail_msg: >-
-      Unsupported Barman state '{{ state | default('present') }}'. Supported
+      Unsupported Barman state '{{ barman_state }}'. Supported
       states are install, uninstall, present, absent, servers_present,
       servers_absent, and validate.
 
@@ -19,6 +19,52 @@
     fail_msg: >-
       iac_blueprint.barman.global_config must be a mapping and servers must
       be a list.
+
+- name: "Validate Barman uninstall paths"
+  ansible.builtin.assert:
+    that:
+      - barman_server_config_dir == '/etc/barman.d'
+      - barman_log_directory == '/var/log/barman'
+      - barman_data_directory == '/var/lib/barman'
+      - barman_run_directory == '/var/run/barman'
+      - barman_config_path == '/etc/barman.conf'
+    fail_msg: >-
+      Barman uninstall supports only its canonical paths: server config
+      /etc/barman.d, logs /var/log/barman, data /var/lib/barman, runtime
+      files /var/run/barman, and global config /etc/barman.conf. Custom paths
+      are not supported for uninstall.
+  when: barman_state == 'uninstall'
+
+- name: "Check Barman uninstall targets for symbolic links"
+  ansible.builtin.stat:
+    path: "{{ barman_uninstall_component }}"
+    follow: false
+  register: barman_uninstall_target_stat
+  loop:
+    - "/etc"
+    - "/etc/barman.d"
+    - "/etc/barman.conf"
+    - "/var"
+    - "/var/log"
+    - "/var/log/barman"
+    - "/var/lib"
+    - "/var/lib/barman"
+    - "/var/run"
+    - "/var/run/barman"
+  loop_control:
+    loop_var: barman_uninstall_component
+  when: barman_state == 'uninstall'
+
+- name: "Reject symbolic links at Barman uninstall targets"
+  ansible.builtin.assert:
+    that:
+      - not (barman_uninstall_stat.stat.islnk | default(false))
+    fail_msg: "Barman uninstall refuses symbolic-link path components: {{ barman_uninstall_stat.barman_uninstall_component }}"
+  loop: "{{ barman_uninstall_target_stat.results | default([]) }}"
+  loop_control:
+    loop_var: barman_uninstall_stat
+    label: "{{ barman_uninstall_stat.barman_uninstall_component }}"
+  when: barman_state == 'uninstall'
 
 - name: "Validate Barman server definitions"
   ansible.builtin.assert:

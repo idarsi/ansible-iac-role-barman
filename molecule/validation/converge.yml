@@ -1,0 +1,118 @@
+---
+- name: Validate Barman blueprint without host changes
+  hosts: all
+  gather_facts: true
+  vars:
+    ansible_remote_tmp: /tmp/.ansible/tmp
+  tasks:
+    - name: Run validation-only state
+      ansible.builtin.include_role:
+        name: ansible-iac-role-barman
+      vars:
+        state: validate
+        iac_blueprint:
+          barman:
+            servers:
+              - name: primary
+                conninfo: "host=db.example.test user=barman dbname=postgres"
+
+    - name: Confirm validation did not create Barman configuration
+      ansible.builtin.stat:
+        path: /etc/barman.conf
+      register: barman_config
+
+    - name: Assert validation did not mutate host
+      ansible.builtin.assert:
+        that:
+          - not barman_config.stat.exists
+
+    - name: Verify uninstall requires actionable confirmation
+      block:
+        - name: Attempt uninstall without confirmation
+          ansible.builtin.include_role:
+            name: ansible-iac-role-barman
+          vars:
+            state: uninstall
+            iac_blueprint:
+              barman: {}
+        - name: Fail if uninstall without confirmation succeeds
+          ansible.builtin.fail:
+            msg: "Uninstall unexpectedly succeeded without confirmation."
+      rescue:
+        - name: Assert confirmation guard failed before the success sentinel
+          ansible.builtin.assert:
+            that:
+              - ansible_failed_task.name != 'Fail if uninstall without confirmation succeeds'
+            fail_msg: >-
+              The uninstall role succeeded; the rescue block was triggered by
+              the fail-if-succeeded sentinel instead of the confirmation guard.
+
+    - name: Verify uninstall rejects unsafe data paths
+      block:
+        - name: Attempt uninstall with root as data path
+          ansible.builtin.include_role:
+            name: ansible-iac-role-barman
+          vars:
+            state: uninstall
+            barman_confirm_data_removal: true
+            barman_data_directory: "/"
+            iac_blueprint:
+              barman: {}
+        - name: Fail if uninstall with root data path succeeds
+          ansible.builtin.fail:
+            msg: "Uninstall unexpectedly succeeded with / as the data path."
+      rescue:
+        - name: Assert unsafe path failed before the success sentinel
+          ansible.builtin.assert:
+            that:
+              - ansible_failed_task.name != 'Fail if uninstall with root data path succeeds'
+            fail_msg: >-
+              The uninstall role succeeded; the rescue block was triggered by
+              the fail-if-succeeded sentinel instead of path validation.
+
+    - name: Verify uninstall rejects arbitrary sensitive paths
+      block:
+        - name: Attempt uninstall with sensitive path
+          ansible.builtin.include_role:
+            name: ansible-iac-role-barman
+          vars:
+            state: uninstall
+            barman_confirm_data_removal: true
+            barman_data_directory: "/etc"
+            iac_blueprint:
+              barman: {}
+        - name: Fail if uninstall with sensitive path succeeds
+          ansible.builtin.fail:
+            msg: "Uninstall unexpectedly succeeded with /etc as the data path."
+      rescue:
+        - name: Assert arbitrary path failed before the success sentinel
+          ansible.builtin.assert:
+            that:
+              - ansible_failed_task.name != 'Fail if uninstall with sensitive path succeeds'
+            fail_msg: >-
+              The uninstall role succeeded; the rescue block was triggered by
+              the fail-if-succeeded sentinel instead of path validation.
+
+    - name: Verify uninstall rejects cross-field path swaps
+      block:
+        - name: Attempt uninstall with swapped log and server configuration paths
+          ansible.builtin.include_role:
+            name: ansible-iac-role-barman
+          vars:
+            state: uninstall
+            barman_confirm_data_removal: true
+            barman_log_directory: "/etc/barman.d"
+            barman_server_config_dir: "/var/log/barman"
+            iac_blueprint:
+              barman: {}
+        - name: Fail if uninstall accepts swapped paths
+          ansible.builtin.fail:
+            msg: "Uninstall unexpectedly accepted swapped role-owned paths."
+      rescue:
+        - name: Assert cross-field path swap failed before success sentinel
+          ansible.builtin.assert:
+            that:
+              - ansible_failed_task.name != 'Fail if uninstall accepts swapped paths'
+            fail_msg: >-
+              Uninstall succeeded with paths assigned to the wrong semantic
+              fields.

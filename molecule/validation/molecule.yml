@@ -1,0 +1,46 @@
+---
+driver:
+  name: podman
+platforms:
+  - name: rocky9
+    image: docker.io/rockylinux/rockylinux:9-ubi-init
+    command: /usr/lib/systemd/systemd
+    privileged: true
+    pre_build_image: true
+  - name: rocky10
+    image: docker.io/rockylinux/rockylinux:10-ubi-init
+    command: /usr/lib/systemd/systemd
+    privileged: true
+    pre_build_image: true
+  - name: rhel9
+    image: registry.access.redhat.com/ubi9/ubi-init
+    command: /usr/lib/systemd/systemd
+    privileged: true
+    pre_build_image: true
+  - name: rhel10
+    image: registry.access.redhat.com/ubi10/ubi-init
+    command: /usr/lib/systemd/systemd
+    privileged: true
+    pre_build_image: true
+provisioner:
+  name: ansible
+  inventory:
+    host_vars:
+      rocky9:
+        ansible_python_interpreter: /usr/bin/python3
+      rocky10:
+        ansible_python_interpreter: /usr/bin/python3
+      rhel9:
+        ansible_python_interpreter: /usr/bin/python3
+      rhel10:
+        ansible_python_interpreter: /usr/bin/python3
+verifier:
+  name: ansible
+scenario:
+  name: validation
+  test_sequence:
+    - syntax
+    - create
+    - converge
+    - verify
+    - destroy

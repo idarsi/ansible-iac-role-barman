@@ -1,6 +1,6 @@
 ---
 - name: "Validate Barman configuration"
-  ansible.builtin.command: barman check all
+  ansible.builtin.command: barman show-servers all
   become: true
   changed_when: false
   when: not ansible_check_mode

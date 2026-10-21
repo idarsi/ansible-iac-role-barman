@@ -1,0 +1,37 @@
+name: Ansible role checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ansible-core ansible-lint
+      - run: ansible-playbook --syntax-check -i docs/inventory-example.yml docs/playbook-example.yml
+      - run: ANSIBLE_ROLES_PATH=.. ansible-lint --profile production
+
+  molecule:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [validation, runtime]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ansible-core molecule molecule-plugins[podman]
+      - run: ansible-galaxy collection install -r molecule/requirements.yml
+      - run: molecule test -s "${{ matrix.scenario }}"

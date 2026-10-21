@@ -1,11 +1,7 @@
 ---
 - name: "Set shared Barman filesystem removal records"
   ansible.builtin.set_fact:
-    iac_fs_directories:
-      - path: "{{ barman_server_config_dir }}"
-      - path: "{{ barman_log_directory }}"
-      - path: "{{ barman_data_directory }}"
-      - path: "{{ barman_run_directory }}"
+    iac_fs_directories: "{{ barman_absent_directories | default([]) }}"
     iac_fs_files: "{{ barman_absent_files | default([]) }}"
 
 - name: "Remove Barman filesystem through shared tasks"
