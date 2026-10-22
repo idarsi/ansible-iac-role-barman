@@ -11,3 +11,7 @@
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"
     no_proxy: "{{ no_proxy }}"
+  register: barman_package_result
+  retries: "{{ barman_repo_network_retries }}"
+  delay: "{{ barman_repo_network_delay }}"
+  until: barman_package_result is succeeded
