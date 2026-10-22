@@ -1,0 +1,49 @@
+---
+- name: Verify Barman installation and rendered configuration
+  hosts: all
+  tasks:
+    - name: Gather installed package facts
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Assert Barman package is installed
+      ansible.builtin.assert:
+        that:
+          - "'barman' in ansible_facts.packages"
+
+    - name: Check global configuration exists
+      ansible.builtin.stat:
+        path: /etc/barman.conf
+      register: global_config
+
+    - name: Check server configuration exists
+      ansible.builtin.stat:
+        path: /etc/barman.d/primary.conf
+      register: server_config
+
+    - name: Read global configuration
+      ansible.builtin.slurp:
+        src: /etc/barman.conf
+      register: global_config_contents
+
+    - name: Assert configuration files exist
+      ansible.builtin.assert:
+        that:
+          - global_config.stat.exists
+          - server_config.stat.exists
+          - "'[barman]' in (global_config_contents.content | b64decode)"
+          - "'barman_home = /var/lib/barman' in (global_config_contents.content | b64decode)"
+
+    - name: Verify Barman can parse all server configurations without connecting
+      ansible.builtin.command: barman show-servers all
+      changed_when: false
+
+    - name: Read server configuration
+      ansible.builtin.slurp:
+        src: /etc/barman.d/primary.conf
+      register: server_config_contents
+
+    - name: Assert server definition was rendered
+      ansible.builtin.assert:
+        that:
+          - "'host=db.example.test' in (server_config_contents.content | b64decode)"

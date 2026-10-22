@@ -1,23 +1,37 @@
 # Testing
 
-The current test surface is a syntax check and production-profile Ansible
-Lint. The supported platform contract is Red Hat Enterprise Linux and Rocky
-Linux 8, 9, and 10; these platforms are not currently covered by automated
-Molecule scenarios. Molecule scenarios should be added before enabling
-package-installation CI, because repository access and Barman package
-availability must be tested on each supported Enterprise Linux version.
+The automated matrix targets Rocky Linux 9 and 10 and Red Hat UBI 9 and 10.
+Podman systemd containers cover validation-only behavior on all four targets;
+the package/configuration runtime scenario runs on Rocky 9 and 10. Runtime
+includes an idempotence pass and verifies package presence and rendered
+configuration. Container results do not establish complete RHEL support or
+real backup/restore behavior.
 
-The validation-only state can be exercised without package installation:
+Scenarios:
+
+- `validation`: validates a representative blueprint and checks that validation
+  did not install Barman or create its global configuration.
+- `runtime`: installs from PGDG, configures a server, checks rendered output,
+  and requires a clean idempotence pass.
+
+Run with the approved `idarsi-ansible-test-environments` setup and its selected
+Ansible environment, after installing the collections from
+`molecule/requirements.yml`:
 
 ```bash
-ansible-playbook --check --diff \
-  -i docs/inventory-example.yml \
-  docs/playbook-example.yml -e state=validate
+molecule test -s validation
+molecule test -s runtime
 ```
 
+Static checks:
+
 ```bash
-ansible-playbook --syntax-check \
-  -i docs/inventory-example.yml \
-  docs/playbook-example.yml
+ansible-playbook --syntax-check -i docs/inventory-example.yml docs/playbook-example.yml
 ANSIBLE_ROLES_PATH=.. ansible-lint --profile production
 ```
+
+Runtime requires outbound access to PGDG and distribution repositories. The
+Molecule tests do not run backup/restore, manipulate real database servers, or
+use the destructive `uninstall` state. CI runs the `validation` and `runtime`
+scenarios for pull requests and pushes to `main`. No KVM/libvirt scenario is
+configured.

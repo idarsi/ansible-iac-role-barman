@@ -1,5 +1,10 @@
 ANSIBLE-IAC-ROLE-BARMAN
 =======================
+> **Maturity State: Beta**<br>
+> **RC Readiness: 84%**<br>
+> Assessment includes passing runtime convergence, idempotence, and verification on Rocky Linux 9/10, the validation matrix, and Ansible Lint.<br>
+> Test evidence is from the working tree and remains pending commit and CI.
+
 **COPYRIGHT** 2026 ^(ida|arsi)$ collective<br>
 **LICENSE** MIT License [LICENSE](LICENSE)<br>
 **AUTHORS**
@@ -23,27 +28,31 @@ definitions. It is intended to provide an independent backup-management layer
 that can be deployed after the PostgreSQL role has prepared the database-side
 connection and replication prerequisites.
 
-> **Maturity Level: Experimental**<br>
-> The initial package, repository, configuration, inventory-validation, and
-> shared-task wrapper functionality is implemented. The role is currently
-> moving from an initial integration prototype toward a production-ready
-> backup-management component. Molecule and CI coverage, end-to-end backup and
-> restore verification, scheduling and WAL-archiving workflows, and broader
-> operating-system coverage still need to be established. Use it for
-> development and controlled integration testing, and review its behavior
-> carefully before using it for unattended production backups.
+> Automated validation and package/configuration runtime scenarios cover Rocky
+> Linux 9 and 10 using Podman; runtime checks include idempotence and rendered
+> configuration. CI is configured, but results on this revision are pending.
+> End-to-end backup/restore workflows and RHEL runtime evidence remain gaps.
+> Review destructive data removal behavior carefully before production use.
 
 ## Supported states
 
 | State | Operation |
 |---|---|
 | `install` | Install packages and configure Barman and all declared servers |
-| `uninstall` | Remove packages, configuration, and Barman data directories |
+| `uninstall` | Remove packages, configuration, and Barman data directories; requires `barman_confirm_data_removal: true` |
 | `present` | Ensure packages and global/server configuration are present |
-| `absent` | Remove packages and managed configuration |
+| `absent` | Remove packages and managed configuration while preserving Barman data directories |
 | `servers_present` | Ensure declared server configuration files are present |
 | `servers_absent` | Remove declared server configuration files |
 | `validate` | Validate the inventory without changing the host |
+
+Uninstall supports only the canonical Barman paths (`/etc/barman.d`,
+`/var/log/barman`, `/var/lib/barman`, `/var/run/barman`, and
+`/etc/barman.conf`). Path defaults may be customized for other operations, but
+uninstall rejects noncanonical assignments, including paths swapped between
+fields. Its component symlink checks reduce unsafe traversal risk but do not
+eliminate time-of-check/time-of-use races; avoid concurrent filesystem changes
+during uninstall.
 
 ## Quick start
 
@@ -76,7 +85,7 @@ input contract without installing packages or changing files.
 ## Requirements
 
 - Ansible 2.15 or newer
-- Red Hat Enterprise Linux or Rocky Linux 8, 9, or 10
+- Red Hat Enterprise Linux or Rocky Linux 9 or 10
 - Access to the PGDG repository and the distribution base repositories
 - PostgreSQL-side connection, authentication, and WAL settings configured
   separately

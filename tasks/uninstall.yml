@@ -1,9 +1,22 @@
 ---
+- name: "Require explicit confirmation before removing Barman data"
+  ansible.builtin.assert:
+    that:
+      - barman_confirm_data_removal | bool
+    fail_msg: >-
+      Barman uninstall removes data under the configured Barman directories.
+      Set barman_confirm_data_removal: true only after verifying those paths.
+
 - name: "Ensure Barman packages and configuration are absent"
   ansible.builtin.include_tasks: absent.yml
 
 - name: "Remove Barman data and configuration through shared tasks"
   ansible.builtin.include_tasks: filesystem_absent.yml
   vars:
+    barman_absent_directories:
+      - path: "{{ barman_server_config_dir }}"
+      - path: "{{ barman_log_directory }}"
+      - path: "{{ barman_data_directory }}"
+      - path: "{{ barman_run_directory }}"
     barman_absent_files:
       - path: "{{ barman_config_path }}"

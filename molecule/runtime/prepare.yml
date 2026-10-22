@@ -1,0 +1,16 @@
+---
+# Bootstrap only test-container package tooling needed by the runtime scenario.
+# Podman connects as root, so privilege escalation must remain disabled here.
+- name: Prepare Rocky Linux runtime test hosts
+  hosts: all
+  become: false
+  gather_facts: false
+  tasks:
+    - name: Install sudo and repository tooling
+      ansible.builtin.raw: >-
+        dnf install -y sudo epel-release dnf-plugins-core
+      changed_when: true
+
+    - name: Enable CRB repository when supported
+      ansible.builtin.raw: "dnf config-manager --set-enabled crb"
+      changed_when: true

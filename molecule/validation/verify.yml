@@ -1,0 +1,27 @@
+---
+- name: Verify validation role completed without changes
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Load Barman role defaults for repository URL regression check
+      ansible.builtin.include_vars:
+        file: "../../defaults/main.yml"
+
+    - name: Assert PGDG repository URL has no whitespace in its path
+      ansible.builtin.assert:
+        that:
+          - >-
+            barman_repo_package_url ==
+            'https://download.postgresql.org/pub/repos/yum/reporpms/EL-'
+            ~ ansible_facts['distribution_major_version']
+            ~ '-x86_64/pgdg-redhat-repo-latest.noarch.rpm'
+        fail_msg: "The PGDG repository RPM URL is malformed."
+
+    - name: Gather installed package facts
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Assert Barman package was not installed
+      ansible.builtin.assert:
+        that:
+          - "'barman' not in ansible_facts.packages"

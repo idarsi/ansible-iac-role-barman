@@ -1,5 +1,9 @@
+[barman]
+barman_home = {{ barman_home }}
 {% for key, value in barman_global_config.items() %}
+{% if key != 'barman_home' %}
 {{ key }} = {{ value }}
+{% endif %}
 {% endfor %}
 
 configuration_files_directory = {{ barman_server_config_dir }}

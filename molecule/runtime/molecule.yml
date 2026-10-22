@@ -1,0 +1,28 @@
+---
+driver:
+  name: podman
+platforms:
+  - name: rocky9
+    image: docker.io/rockylinux/rockylinux:9-ubi-init
+    command: /usr/lib/systemd/systemd
+    privileged: true
+    pre_build_image: true
+  - name: rocky10
+    image: docker.io/rockylinux/rockylinux:10-ubi-init
+    command: /usr/lib/systemd/systemd
+    privileged: true
+    pre_build_image: true
+provisioner:
+  name: ansible
+verifier:
+  name: ansible
+scenario:
+  name: runtime
+  test_sequence:
+    - syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    - verify
+    - destroy

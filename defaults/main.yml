@@ -12,8 +12,8 @@ https_proxy: ""
 no_proxy: ""
 
 iac_supported_os:
-  - { name: "Rocky", versions: ["8", "9", "10"] }
-  - { name: "RedHat", versions: ["8", "9", "10"] }
+  - { name: "Rocky", versions: ["9", "10"] }
+  - { name: "RedHat", versions: ["9", "10"] }
 
 dnf_sslverify: true
 dnf_validate_certs: true
@@ -28,8 +28,9 @@ barman_el8_dnf_interpreter: "/usr/libexec/platform-python"
 barman_dnf_repo_path: "/etc/yum.repos.d/pgdg-redhat-all.repo"
 barman_repo_key_url: "https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-RHEL"
 barman_repo_package_url: >-
-  https://download.postgresql.org/pub/repos/yum/reporpms/EL-
-  {{ ansible_facts['distribution_major_version'] }}-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+  {{ 'https://download.postgresql.org/pub/repos/yum/reporpms/EL-'
+     ~ ansible_facts['distribution_major_version']
+     ~ '-x86_64/pgdg-redhat-repo-latest.noarch.rpm' }}
 barman_repo_id: "pgdg-common"
 
 barman_package_name: "barman"
@@ -43,6 +44,7 @@ barman_config_path: "/etc/barman.conf"
 barman_server_config_dir: "/etc/barman.d"
 barman_log_directory: "/var/log/barman"
 barman_data_directory: "/var/lib/barman"
+barman_confirm_data_removal: false
 barman_run_directory: "/var/run/barman"
 barman_config_mode: "0640"
 
