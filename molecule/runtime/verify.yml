@@ -1,7 +1,6 @@
 ---
 - name: Verify Barman installation and rendered configuration
   hosts: all
-  become: true
   tasks:
     - name: Gather installed package facts
       ansible.builtin.package_facts:
