@@ -10,7 +10,11 @@
     - name: Assert PGDG repository URL has no whitespace in its path
       ansible.builtin.assert:
         that:
-          - barman_repo_package_url == 'https://download.postgresql.org/pub/repos/yum/reporpms/EL-' ~ ansible_facts['distribution_major_version'] ~ '-x86_64/pgdg-redhat-repo-latest.noarch.rpm'
+          - >-
+            barman_repo_package_url ==
+            'https://download.postgresql.org/pub/repos/yum/reporpms/EL-'
+            ~ ansible_facts['distribution_major_version']
+            ~ '-x86_64/pgdg-redhat-repo-latest.noarch.rpm'
         fail_msg: "The PGDG repository RPM URL is malformed."
 
     - name: Gather installed package facts

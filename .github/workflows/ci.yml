@@ -8,6 +8,8 @@ on:
 jobs:
   static:
     runs-on: ubuntu-latest
+    env:
+      ANSIBLE_ROLES_PATH: ${{ github.workspace }}/..
     steps:
       - uses: actions/checkout@v4
         with:
@@ -17,10 +19,12 @@ jobs:
           python-version: "3.12"
       - run: pip install ansible-core ansible-lint
       - run: ansible-playbook --syntax-check -i docs/inventory-example.yml docs/playbook-example.yml
-      - run: ANSIBLE_ROLES_PATH=.. ansible-lint --profile production
+      - run: ansible-lint --profile production
 
   molecule:
     runs-on: ubuntu-latest
+    env:
+      ANSIBLE_ROLES_PATH: ${{ github.workspace }}/..
     strategy:
       fail-fast: false
       matrix:
